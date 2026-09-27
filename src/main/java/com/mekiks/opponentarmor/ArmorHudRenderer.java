@@ -45,6 +45,9 @@ public final class ArmorHudRenderer {
     private record Entry(ItemStack stack, String label, int color, float fraction, boolean breakable) {
     }
 
+    /** Screen-space bounds of the most recently drawn panel (used for dragging it). */
+    public static int lastX, lastY, lastW, lastH;
+
     private ArmorHudRenderer() {
     }
 
@@ -101,9 +104,17 @@ public final class ArmorHudRenderer {
             case TOP_RIGHT, TOP_LEFT -> ArmorConfig.offsetY;
         };
 
+        // Keep the whole panel on screen even if the window shrank since it was placed.
+        px = Math.max(0, Math.min(px, sw - w * s));
+        py = Math.max(0, Math.min(py, shh - h * s));
+        lastX = Math.round(px);
+        lastY = Math.round(py);
+        lastW = Math.round(w * s);
+        lastH = Math.round(h * s);
+
         var m = ctx.getMatrices();
         m.pushMatrix();
-        m.translate(Math.round(px), Math.round(py));
+        m.translate(lastX, lastY);
         m.scale(s, s);
 
         int alpha = Math.round(ArmorConfig.bgOpacity * 2.55f);

@@ -30,6 +30,7 @@
   "opponentarmor.unit.seconds": "%ss",
   "opponentarmor.button.reset": "Reset",
   "opponentarmor.hud.no_armor": "No armor",
+  "opponentarmor.hint.drag": "Drag the preview to move it anywhere",
   "key.category.opponentarmor.main": "OpponentArmor",
   "key.opponentarmor.settings": "Open settings",
   "key.opponentarmor.toggle": "Toggle HUD"

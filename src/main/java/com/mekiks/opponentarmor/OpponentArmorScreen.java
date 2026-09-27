@@ -5,7 +5,9 @@ import com.mekiks.opponentarmor.SettingsWidgets.Cycle;
 import com.mekiks.opponentarmor.SettingsWidgets.FlatButton;
 import com.mekiks.opponentarmor.SettingsWidgets.Slider;
 import com.mekiks.opponentarmor.SettingsWidgets.Toggle;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.cursor.StandardCursors;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.DefaultSkinHelper;
 import net.minecraft.entity.player.SkinTextures;
@@ -39,6 +41,10 @@ public class OpponentArmorScreen extends Screen {
     private int top;
     private int rowsBottom;
 
+    private boolean dragging;
+    private double grabX;
+    private double grabY;
+
     public OpponentArmorScreen(@Nullable Screen parent) {
         super(Text.translatable("opponentarmor.title"));
         this.parent = parent;
@@ -71,7 +77,7 @@ public class OpponentArmorScreen extends Screen {
     protected void init() {
         int total = COL_W * 2 + COL_GAP;
         left = Math.max(8, (width - total) / 2);
-        top = 46;
+        top = 52;
         rowsBottom = top + ROWS * (ROW_H + ROW_GAP) - ROW_GAP;
         int right = left + COL_W + COL_GAP;
 
@@ -118,10 +124,10 @@ public class OpponentArmorScreen extends Screen {
         addDrawableChild(new Cycle<>(right, y, COL_W, ROW_H, opt("anchor"), ArmorConfig.Anchor.values(),
                 () -> ArmorConfig.anchor, v -> ArmorConfig.anchor = v, v -> enumText("anchor", v)));
         y += ROW_H + ROW_GAP;
-        addDrawableChild(new Slider(right, y, COL_W, ROW_H, opt("offset_x"), 0, 200, 1,
+        addDrawableChild(new Slider(right, y, COL_W, ROW_H, opt("offset_x"), 0, width, 1,
                 () -> ArmorConfig.offsetX, v -> ArmorConfig.offsetX = (int) v, v -> (int) v + " px"));
         y += ROW_H + ROW_GAP;
-        addDrawableChild(new Slider(right, y, COL_W, ROW_H, opt("offset_y"), 0, 200, 1,
+        addDrawableChild(new Slider(right, y, COL_W, ROW_H, opt("offset_y"), 0, height, 1,
                 () -> ArmorConfig.offsetY, v -> ArmorConfig.offsetY = (int) v, v -> (int) v + " px"));
         y += ROW_H + ROW_GAP;
         addDrawableChild(new Slider(right, y, COL_W, ROW_H, opt("radius"), 0, 8, 1,
@@ -143,7 +149,9 @@ public class OpponentArmorScreen extends Screen {
 
     @Override
     public void render(DrawContext ctx, int mouseX, int mouseY, float delta) {
-        ctx.drawCenteredTextWithShadow(textRenderer, title, width / 2, 12, 0xFFFFFFFF);
+        ctx.drawCenteredTextWithShadow(textRenderer, title, width / 2, 10, 0xFFFFFFFF);
+        Text hint = Text.translatable("opponentarmor.hint.drag");
+        ctx.drawText(textRenderer, hint, (width - textRenderer.getWidth(hint)) / 2, 22, SettingsWidgets.MUTED, false);
 
         int right = left + COL_W + COL_GAP;
         card(ctx, left, Text.translatable("opponentarmor.section.general"));
@@ -151,10 +159,80 @@ public class OpponentArmorScreen extends Screen {
 
         super.render(ctx, mouseX, mouseY, delta);
 
-        // Live preview at the real HUD position.
+        // Live preview at the real HUD position; it can be dragged anywhere.
         String name = client.player != null ? client.player.getName().getString() : client.getSession().getUsername();
         SkinTextures skin = client.player != null ? client.player.getSkin() : DefaultSkinHelper.getSteve();
         ArmorHudRenderer.render(ctx, textRenderer, name, skin, previewArmor);
+
+        boolean over = overPreview(mouseX, mouseY);
+        if (dragging || over) {
+            outline(ctx, ArmorHudRenderer.lastX - 2, ArmorHudRenderer.lastY - 2,
+                    ArmorHudRenderer.lastW + 4, ArmorHudRenderer.lastH + 4,
+                    dragging ? SettingsWidgets.ACCENT : 0x996C8CFF);
+            ctx.setCursor(StandardCursors.RESIZE_ALL);
+        }
+    }
+
+    private static void outline(DrawContext ctx, int x, int y, int w, int h, int color) {
+        ctx.fill(x, y, x + w, y + 1, color);
+        ctx.fill(x, y + h - 1, x + w, y + h, color);
+        ctx.fill(x, y + 1, x + 1, y + h - 1, color);
+        ctx.fill(x + w - 1, y + 1, x + w, y + h - 1, color);
+    }
+
+    private static boolean overPreview(double mx, double my) {
+        return mx >= ArmorHudRenderer.lastX && mx < ArmorHudRenderer.lastX + ArmorHudRenderer.lastW
+                && my >= ArmorHudRenderer.lastY && my < ArmorHudRenderer.lastY + ArmorHudRenderer.lastH;
+    }
+
+    // ---- dragging the preview ----
+
+    @Override
+    public boolean mouseClicked(Click click, boolean doubled) {
+        // The preview sits on top of everything, so it gets the click first.
+        if (click.button() == 0 && overPreview(click.x(), click.y())) {
+            dragging = true;
+            grabX = click.x() - ArmorHudRenderer.lastX;
+            grabY = click.y() - ArmorHudRenderer.lastY;
+            return true;
+        }
+        return super.mouseClicked(click, doubled);
+    }
+
+    @Override
+    public boolean mouseDragged(Click click, double offsetX, double offsetY) {
+        if (dragging) {
+            moveTo(click.x() - grabX, click.y() - grabY);
+            return true;
+        }
+        return super.mouseDragged(click, offsetX, offsetY);
+    }
+
+    @Override
+    public boolean mouseReleased(Click click) {
+        if (dragging && click.button() == 0) {
+            dragging = false;
+            return true;
+        }
+        return super.mouseReleased(click);
+    }
+
+    /**
+     * Places the panel's top-left at (x, y), then re-expresses that as the nearest
+     * corner plus offsets, so the panel keeps its spot when the window is resized.
+     */
+    private void moveTo(double x, double y) {
+        int w = ArmorHudRenderer.lastW;
+        int h = ArmorHudRenderer.lastH;
+        int nx = (int) Math.round(Math.max(0, Math.min(x, width - w)));
+        int ny = (int) Math.round(Math.max(0, Math.min(y, height - h)));
+        boolean rightSide = nx + w / 2 >= width / 2;
+        boolean bottom = ny + h / 2 >= height / 2;
+        ArmorConfig.anchor = bottom
+                ? (rightSide ? ArmorConfig.Anchor.BOTTOM_RIGHT : ArmorConfig.Anchor.BOTTOM_LEFT)
+                : (rightSide ? ArmorConfig.Anchor.TOP_RIGHT : ArmorConfig.Anchor.TOP_LEFT);
+        ArmorConfig.offsetX = rightSide ? width - nx - w : nx;
+        ArmorConfig.offsetY = bottom ? height - ny - h : ny;
     }
 
     private void card(DrawContext ctx, int x, Text heading) {

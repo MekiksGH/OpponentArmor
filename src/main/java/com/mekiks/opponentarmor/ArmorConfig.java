@@ -44,8 +44,8 @@ public final class ArmorConfig {
     public static float scale = 1.0f;            // 0.5..2.5
     public static Layout layout = Layout.VERTICAL;
     public static Anchor anchor = Anchor.BOTTOM_RIGHT;
-    public static int offsetX = 6;               // 0..200
-    public static int offsetY = 6;               // 0..200
+    public static int offsetX = 6;               // px from the anchor corner
+    public static int offsetY = 6;
     public static int radius = 4;                // 0..8
     public static int bgOpacity = 55;            // 0..100 %
     public static boolean colorByDurability = true;
@@ -97,8 +97,8 @@ public final class ArmorConfig {
         scale = Math.max(0.5f, Math.min(2.5f, floatOf(p, "scale", scale)));
         layout = enumOf(Layout.class, p.getProperty("layout"), layout);
         anchor = enumOf(Anchor.class, p.getProperty("anchor"), anchor);
-        offsetX = clamp(integer(p, "offsetX", offsetX), 0, 200);
-        offsetY = clamp(integer(p, "offsetY", offsetY), 0, 200);
+        offsetX = clamp(integer(p, "offsetX", offsetX), 0, 10000);
+        offsetY = clamp(integer(p, "offsetY", offsetY), 0, 10000);
         radius = clamp(integer(p, "radius", radius), 0, 8);
         bgOpacity = clamp(integer(p, "bgOpacity", bgOpacity), 0, 100);
         colorByDurability = bool(p, "colorByDurability", colorByDurability);

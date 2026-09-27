@@ -30,6 +30,7 @@
   "opponentarmor.unit.seconds": "%s с",
   "opponentarmor.button.reset": "Сбросить",
   "opponentarmor.hud.no_armor": "Без брони",
+  "opponentarmor.hint.drag": "Перетащи превью мышкой в любое место",
   "key.category.opponentarmor.main": "OpponentArmor",
   "key.opponentarmor.settings": "Открыть настройки",
   "key.opponentarmor.toggle": "Вкл/выкл HUD"
