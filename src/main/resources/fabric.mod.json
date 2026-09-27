@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "opponentarmor",
+  "version": "${version}",
+  "name": "OpponentArmor",
+  "description": "Shows the armor durability of the player you're fighting in a corner of the screen, as a percentage or raw durability. Configurable through Mod Menu.",
+  "authors": [
+    "Mekiks"
+  ],
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "com.mekiks.opponentarmor.OpponentArmor"
+    ],
+    "modmenu": [
+      "com.mekiks.opponentarmor.ModMenuIntegration"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "~1.21.11",
+    "java": ">=21",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "modmenu": "*"
+  }
+}
