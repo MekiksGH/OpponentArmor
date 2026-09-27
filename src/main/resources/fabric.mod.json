@@ -7,6 +7,11 @@
   "authors": [
     "Mekiks"
   ],
+  "contact": {
+    "homepage": "https://github.com/MekiksGH/OpponentArmor",
+    "sources": "https://github.com/MekiksGH/OpponentArmor",
+    "issues": "https://github.com/MekiksGH/OpponentArmor/issues"
+  },
   "license": "MIT",
   "environment": "client",
   "entrypoints": {

@@ -18,3 +18,7 @@ will make every piece read 100%.
 ```
 ./gradlew build   # → build/libs/opponentarmor-<version>.jar
 ```
+
+## License
+
+MIT © 2026 Mekiks — see [LICENSE](LICENSE).
